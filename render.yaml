@@ -3,7 +3,7 @@ services:
     name: analise-software
     env: python
     buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: gunicorn run:app
+    startCommand: gunicorn run:app --bind 0.0.0.0:10000
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.11
