@@ -333,9 +333,11 @@ def generate_pie_chart(analysis_data):
     return _save_plotly_chart(fig, filename)
 
 def generate_wordcloud(analysis_data):
-    """Gera uma nuvem de palavras dos comentários"""
+    """Gera uma nuvem de palavras a partir das palavras-chave dos comentários"""
+    plt.close('all')  # Fecha todas as figuras anteriores
+    
     # Obtém as palavras-chave
-    keywords = analysis_data['keywords']
+    keywords = analysis_data.get('keywords', {})
     
     if not keywords:
         return None
@@ -347,14 +349,14 @@ def generate_wordcloud(analysis_data):
     wc = WordCloud(
         width=900,
         height=450,
-        background_color='#303030',  # Fundo escuro para combinar com o tema
+        background_color='#303030',
         colormap='viridis',
-        max_words=50,  # Reduzido para melhor legibilidade
+        max_words=50,
         min_font_size=10,
         max_font_size=60,
-        prefer_horizontal=0.7,  # 70% das palavras na horizontal
-        relative_scaling=0.5,  # Melhor balanço entre frequência e tamanho
-        color_func=lambda *args, **kwargs: (255, 255, 255)  # Texto em branco
+        prefer_horizontal=0.7,
+        relative_scaling=0.5,
+        color_func=lambda *args, **kwargs: (255, 255, 255)
     ).generate_from_frequencies(keywords)
     
     # Cria a figura
@@ -367,7 +369,9 @@ def generate_wordcloud(analysis_data):
     
     # Salva o gráfico
     filename = _generate_unique_filename('wordcloud')
-    return _save_matplotlib_chart(fig, filename)
+    result = _save_matplotlib_chart(fig, filename)
+    plt.close('all')  # Fecha todas as figuras
+    return result
 
 def generate_distribution_chart(analysis_data, area):
     """Gera um gráfico de distribuição de respostas para uma área específica"""
@@ -482,6 +486,8 @@ def generate_example_pie_chart():
 
 def generate_example_wordcloud():
     """Gera uma nuvem de palavras de exemplo quando não há dados reais"""
+    plt.close('all')  # Fecha todas as figuras anteriores
+    
     # Palavras de exemplo relacionadas a feedback de funcionários
     text = "satisfação trabalho equipe liderança comunicação benefícios salário horário flexibilidade " \
            "ambiente cultura empresa desenvolvimento carreira oportunidade crescimento reconhecimento " \
@@ -514,7 +520,9 @@ def generate_example_wordcloud():
     
     # Salva o gráfico
     filename = _generate_unique_filename('wordcloud_example')
-    return _save_matplotlib_chart(fig, filename)
+    result = _save_matplotlib_chart(fig, filename)
+    plt.close('all')  # Fecha todas as figuras
+    return result
 
 def generate_overall_satisfaction_chart(analysis_data):
     """Gera um gráfico de satisfação geral para a seção de visão geral"""

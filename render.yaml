@@ -6,6 +6,8 @@ services:
     startCommand: gunicorn run:app
     envVars:
       - key: PYTHON_VERSION
-        value: 3.10.7
-      - key: PROD_APP_SETTINGS
-        value: config.ProductionConfig 
+        value: 3.11.11
+      - key: FLASK_APP
+        value: config.ProductionConfig
+      - key: PORT
+        value: 10000 
