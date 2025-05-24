@@ -1,0 +1,47 @@
+
+# 📏 Regras de Desenvolvimento – Sistema Local de Análise de Entrevistas de Desligamento
+
+## 📁 Organização do Projeto
+1. O projeto deve seguir a estrutura de diretórios definida no escopo (`/app`, `/static`, `/templates`, etc).
+2. Todos os arquivos de entrada (CSV) devem ser colocados exclusivamente na pasta `/database`.
+3. Os gráficos gerados devem ser salvos em `/static/charts/` com nomes únicos por período ou comparação.
+
+## 🧠 Lógica de Processamento
+4. Os dados devem ser lidos e tratados com `pandas`, concatenando todos os arquivos presentes em `/database/`.
+5. O sistema deve permitir filtros por recorte temporal (mês, trimestre, semestre, ano, todos os tempos).
+6. A comparação entre dois períodos deve gerar análises lado a lado e insights por fator.
+
+## 📊 Geração de Gráficos
+7. Os gráficos devem ser gerados com Plotly (preferencial) ou Matplotlib/Seaborn como alternativa.
+8. Wordclouds devem excluir stopwords e termos irrelevantes.
+9. Todos os gráficos devem ser exportáveis (PNG ou embutidos no PDF).
+
+## 📄 Relatórios em PDF
+10. O PDF deve conter cabeçalho com o período, gráficos, insights automáticos e alertas relevantes.
+11. O layout deve usar `report_template.html` renderizado via Jinja2 e convertido com WeasyPrint.
+
+## 📦 Exportações
+12. Devem ser gerados arquivos `.csv` e `.xlsx` contendo os dados analisados.
+13. A exportação `.xlsx` deve ter abas separadas para:
+    - Indicadores gerais
+    - Comparações
+    - Comentários analisados
+    - Palavras-chave
+
+## 🚨 Alertas e Insights
+14. O sistema deve gerar alertas automáticos quando houver variação superior a 10% negativa em qualquer área.
+15. Os insights por área devem usar as frases automáticas definidas, substituindo `{var:.1f}` pela variação real.
+
+## 🔒 Segurança e Privacidade
+16. Nenhuma informação deve ser transmitida via rede – o sistema deve rodar 100% local.
+17. Dados sensíveis devem ser mantidos apenas em ambiente controlado pela empresa.
+
+## 📐 Estilo e Padronização
+18. Código Python deve seguir PEP8.
+19. HTML deve ser semanticamente estruturado.
+20. CSS deve utilizar classes do Bootstrap sempre que possível para manter consistência visual.
+
+## ✅ Validação Final
+21. O sistema deve ser testado com no mínimo 3 arquivos diferentes antes da entrega.
+22. Os insights gerados devem ser validados por pelo menos um profissional da área de RH.
+

@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+
+{% block title %}Comparação de Períodos - Entrevistas de Desligamento{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">Comparação de Períodos</h1>
+                    <p class="text-muted">Compare diferentes períodos para identificar tendências e variações</p>
+                </div>
+                <a href="/" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h4><i class="bi bi-bar-chart-fill me-2"></i> Análise de Entrevistas</h4>
+        </div>
+        
+        <div class="user-profile mt-2 mb-4">
+            <div class="user-avatar">A</div>
+            <div class="user-info">
+                <h6 class="user-name">Admin</h6>
+                <small class="text-muted">Análise de Desligamentos</small>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <h6 class="nav-section-title">Navegação</h6>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/analyze">
+                        <i class="bi bi-graph-up"></i>
+                        <span>Análise de Dados</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/compare">
+                        <i class="bi bi-bar-chart"></i>
+                        <span>Comparar Períodos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/manage_files">
+                        <i class="bi bi-file-earmark-plus"></i>
+                        <span>Gerenciar Dados</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="nav-section">
+            <h6 class="nav-section-title">Relatórios</h6>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span>Relatório Anual</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="bi bi-list-columns"></i>
+                        <span>Tabelas</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                        <span>Exportar PDF</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <nav class="navbar mb-4">
+            <div class="container-fluid px-0">
+                <h4 class="mb-0">Comparação</h4>
+                <div class="d-flex align-items-center">
+                    <form class="search-form me-3">
+                        <i class="bi bi-search"></i>
+                        <input type="search" class="form-control" placeholder="Pesquisar">
+                    </form>
+                    <div class="dropdown">
+                        <button class="btn btn-dark" type="button">
+                            <i class="bi bi-gear"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        {% if not available_periods or not available_periods.year %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-exclamation-triangle display-4 mb-3 text-warning"></i>
+                    <h2>Nenhum dado encontrado</h2>
+                    <p>Por favor, coloque arquivos CSV de entrevistas de desligamento na pasta <code>database/</code> e atualize os dados.</p>
+                    <a href="/" class="btn btn-primary mt-3">Voltar para a Página Inicial</a>
+                </div>
+            </div>
+        {% else %}
+            <form action="/compare_periods" method="post">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Selecione os Períodos para Comparação</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="card mb-0">
+                                    <div class="card-header bg-primary bg-opacity-25">
+                                        <h5 class="mb-0">Período 1</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="period1_type" class="form-label">Tipo de Período</label>
+                                            <select class="form-select bg-dark text-light border-dark" id="period1_type" name="period1_type" required>
+                                                {% for period_type, period_name in periods.items() %}
+                                                    <option value="{{ period_type }}">{{ period_name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mb-0">
+                                            <label for="period1_value" class="form-label">Valor do Período</label>
+                                            <select class="form-select bg-dark text-light border-dark" id="period1_value" name="period1_value" required>
+                                                <option value="">Selecione...</option>
+                                                <!-- Opções serão carregadas via JavaScript -->
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-2 d-flex align-items-center justify-content-center">
+                                <div class="vs-badge">VS</div>
+                            </div>
+                            
+                            <div class="col-md-5">
+                                <div class="card mb-0">
+                                    <div class="card-header bg-info bg-opacity-25">
+                                        <h5 class="mb-0">Período 2</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="period2_type" class="form-label">Tipo de Período</label>
+                                            <select class="form-select bg-dark text-light border-dark" id="period2_type" name="period2_type" required>
+                                                {% for period_type, period_name in periods.items() %}
+                                                    <option value="{{ period_type }}">{{ period_name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mb-0">
+                                            <label for="period2_value" class="form-label">Valor do Período</label>
+                                            <select class="form-select bg-dark text-light border-dark" id="period2_value" name="period2_value" required>
+                                                <option value="">Selecione...</option>
+                                                <!-- Opções serão carregadas via JavaScript -->
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-bar-chart-line"></i> Comparar Períodos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Sobre a Comparação de Períodos</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>A comparação entre períodos permite:</p>
+                            <ul>
+                                <li>Identificar tendências de melhoria ou piora nas diferentes áreas avaliadas</li>
+                                <li>Visualizar o impacto de mudanças implementadas entre um período e outro</li>
+                                <li>Gerar insights automáticos que destacam as variações mais significativas</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul>
+                                <li>Detectar padrões sazonais ou pontuais nas avaliações</li>
+                                <li>Exportar relatórios comparativos para apresentações gerenciais</li>
+                            </ul>
+                            <p class="text-muted mt-3">Selecione períodos de mesmo tipo (ex: semestre vs semestre) para uma comparação mais consistente.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Dados de períodos disponíveis passados pelo Flask
+    const availablePeriods = JSON.parse('{{ available_periods|tojson }}');
+    
+    // Função para atualizar as opções de valor do período
+    function updatePeriodValueOptions(periodType, periodValueSelect) {
+        // Limpa as opções atuais
+        periodValueSelect.innerHTML = '<option value="">Selecione...</option>';
+        
+        // Se não temos dados para o tipo de período, retorna
+        if (!availablePeriods[periodType]) {
+            return;
+        }
+        
+        // Adiciona as opções disponíveis
+        availablePeriods[periodType].forEach(value => {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = value;
+            periodValueSelect.appendChild(option);
+        });
+    }
+    
+    // Inicializa os selects de valor dos períodos quando a página carrega
+    document.addEventListener('DOMContentLoaded', function() {
+        const period1Type = document.getElementById('period1_type');
+        const period1Value = document.getElementById('period1_value');
+        const period2Type = document.getElementById('period2_type');
+        const period2Value = document.getElementById('period2_value');
+        
+        // Configura os eventos de mudança no tipo de período
+        period1Type.addEventListener('change', function() {
+            updatePeriodValueOptions(this.value, period1Value);
+        });
+        
+        period2Type.addEventListener('change', function() {
+            updatePeriodValueOptions(this.value, period2Value);
+        });
+        
+        // Inicializa as opções de valor dos períodos
+        updatePeriodValueOptions(period1Type.value, period1Value);
+        updatePeriodValueOptions(period2Type.value, period2Value);
+    });
+</script>
+{% endblock %} 

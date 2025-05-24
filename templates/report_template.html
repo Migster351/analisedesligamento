@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 1rem;
+        }
+        .header h1 {
+            color: #2c5282;
+            margin-bottom: 0.5rem;
+        }
+        .header p {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        .section {
+            margin-bottom: 2rem;
+            page-break-inside: avoid;
+        }
+        .section h2 {
+            color: #2c5282;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        .insights {
+            background-color: #f8fafc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid #4299e1;
+            margin-bottom: 1rem;
+        }
+        .insight-item {
+            margin-bottom: 0.5rem;
+        }
+        .alerts {
+            background-color: #fff5f5;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid #f56565;
+            margin-bottom: 1rem;
+        }
+        .alert-item {
+            margin-bottom: 0.5rem;
+        }
+        .alert-high {
+            color: #c53030;
+            font-weight: bold;
+        }
+        .alert-medium {
+            color: #dd6b20;
+        }
+        .chart-container {
+            text-align: center;
+            margin: 1rem 0;
+            max-width: 100%;
+        }
+        .chart-container img {
+            max-width: 100%;
+            height: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        table th {
+            background-color: #edf2f7;
+            padding: 0.5rem;
+            text-align: left;
+            font-weight: bold;
+            border: 1px solid #e2e8f0;
+        }
+        table td {
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: #718096;
+            border-top: 1px solid #ddd;
+            padding-top: 1rem;
+        }
+        .grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .grid-item {
+            flex: 1 1 45%;
+            min-width: 45%;
+        }
+        .period-info {
+            background-color: #ebf8ff;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+        .text-center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ title }}</h1>
+        <p>Gerado em: {{ date }}</p>
+    </div>
+    
+    <div class="section">
+        <h2>Visão Geral</h2>
+        
+        <div class="text-center">
+            <div class="period-info">
+                Período: 
+                {% if period.type == 'month' %}
+                    Mês {{ period.value }}
+                {% elif period.type == 'quarter' %}
+                    Trimestre {{ period.value }}
+                {% elif period.type == 'semester' %}
+                    Semestre {{ period.value }}
+                {% elif period.type == 'year' %}
+                    Ano {{ period.value }}
+                {% else %}
+                    Todos os Períodos
+                {% endif %}
+            </div>
+        </div>
+        
+        <p>Este relatório apresenta a análise de <strong>{{ analysis.count }}</strong> entrevistas de desligamento realizadas no período.</p>
+        
+        {% if insights %}
+        <div class="insights">
+            <h3>Insights Principais</h3>
+            {% for area, insight in insights.items() %}
+            <div class="insight-item">
+                <strong>{{ area|capitalize }}:</strong> {{ insight }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% if alerts %}
+        <div class="alerts">
+            <h3>Alertas</h3>
+            {% for alert in alerts %}
+            <div class="alert-item alert-{{ alert.severity }}">
+                {{ alert.message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="section">
+        <h2>Médias por Área</h2>
+        {% if charts.bar %}
+        <div class="chart-container">
+            <img src="{{ charts.bar }}" alt="Gráfico de médias por área">
+        </div>
+        {% endif %}
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Área</th>
+                    <th>Média</th>
+                    <th>Mediana</th>
+                    <th>Mínimo</th>
+                    <th>Máximo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for area, data in analysis.areas.items() %}
+                <tr>
+                    <td>{{ area|capitalize }}</td>
+                    <td>{{ data.mean|round(2) }}</td>
+                    <td>{{ data.median|round(2) }}</td>
+                    <td>{{ data.min }}</td>
+                    <td>{{ data.max }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2>Radar de Satisfação</h2>
+        {% if charts.radar %}
+        <div class="chart-container">
+            <img src="{{ charts.radar }}" alt="Radar de satisfação">
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="grid">
+        {% if charts.pie %}
+        <div class="grid-item section">
+            <h2>Sentimento dos Comentários</h2>
+            <div class="chart-container">
+                <img src="{{ charts.pie }}" alt="Sentimento dos comentários">
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if charts.wordcloud %}
+        <div class="grid-item section">
+            <h2>Palavras-chave dos Comentários</h2>
+            <div class="chart-container">
+                <img src="{{ charts.wordcloud }}" alt="Nuvem de palavras">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="section">
+        <h2>Distribuição de Respostas por Área</h2>
+        {% for area in analysis.areas %}
+            {% if charts['distribution_' + area] %}
+            <div class="chart-container">
+                <h3>{{ area|capitalize }}</h3>
+                <img src="{{ charts['distribution_' + area] }}" alt="Distribuição de respostas para {{ area }}">
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    
+    <div class="footer">
+        <p>Sistema Local de Análise de Entrevistas de Desligamento &copy; {{ date.split(' ')[0].split('/')[2] }}</p>
+    </div>
+</body>
+</html> 

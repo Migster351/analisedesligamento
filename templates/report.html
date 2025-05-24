@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Análise de Entrevistas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .title {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .date-info {
+            font-size: 14px;
+            color: #888;
+        }
+        .summary-section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+            color: #2c3e50;
+        }
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px 20px;
+        }
+        .stat-box {
+            flex: 1;
+            min-width: 200px;
+            margin: 10px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #3498db;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        .chart-section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        .chart-container {
+            width: 100%;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .chart-container img {
+            max-width: 100%;
+            height: auto;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .chart-title {
+            font-size: 16px;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .categories-section {
+            display: flex;
+            margin-bottom: 30px;
+        }
+        .category-column {
+            flex: 1;
+            padding: 0 10px;
+        }
+        .category-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .category-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+        }
+        .category-name {
+            font-weight: bold;
+        }
+        .category-value {
+            color: #3498db;
+        }
+        .comments-section {
+            margin-bottom: 30px;
+        }
+        .comment-item {
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .comment-id {
+            font-weight: bold;
+        }
+        .comment-date {
+            color: #888;
+            font-size: 14px;
+        }
+        .comment-rating {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        .comment-text {
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        .comment-category {
+            display: inline-block;
+            background-color: #eee;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Análise de Software</div>
+            <h1 class="title">Relatório de Análise de Entrevistas</h1>
+            <p class="subtitle">{{ period_name|capitalize }}: {{ period_value }}</p>
+            <p class="date-info">Gerado em {{ generation_date }}</p>
+        </div>
+        
+        <div class="summary-section">
+            <h2 class="section-title">Resumo da Análise</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-value">{{ analysis.count }}</div>
+                    <div class="stat-label">Total de Entrevistas</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">{{ analysis.overall_mean|round(2) }}</div>
+                    <div class="stat-label">Satisfação Média</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">{{ analysis.comments|length }}</div>
+                    <div class="stat-label">Comentários</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chart-section">
+            <h2 class="section-title">Visualização dos Dados</h2>
+            
+            {% if charts %}
+                <div class="chart-container">
+                    <img src="{{ charts.overall_satisfaction }}" alt="Satisfação Geral">
+                    <div class="chart-title">Satisfação Geral</div>
+                </div>
+                
+                <div class="chart-container">
+                    <img src="{{ charts.category_comparison }}" alt="Comparação por Categoria">
+                    <div class="chart-title">Comparação por Categoria</div>
+                </div>
+                
+                <div class="page-break"></div>
+                
+                <div class="chart-container">
+                    <img src="{{ charts.rating_distribution }}" alt="Distribuição de Avaliações">
+                    <div class="chart-title">Distribuição de Avaliações</div>
+                </div>
+                
+                <div class="chart-container">
+                    <img src="{{ charts.trend_chart }}" alt="Tendência Temporal">
+                    <div class="chart-title">Tendência Temporal</div>
+                </div>
+            {% else %}
+                <p>Não há gráficos disponíveis para este período.</p>
+            {% endif %}
+        </div>
+        
+        <div class="categories-section">
+            <div class="category-column">
+                <h2 class="section-title">Pontos Fortes</h2>
+                {% if analysis and analysis.best_categories %}
+                    <ul class="category-list">
+                        {% for category in analysis.best_categories[:5] %}
+                            <li class="category-item">
+                                <span class="category-name">{{ category.name }}</span>
+                                <span class="category-value">{{ category.mean|round(2) }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>Não há dados disponíveis.</p>
+                {% endif %}
+            </div>
+            
+            <div class="category-column">
+                <h2 class="section-title">Pontos de Melhoria</h2>
+                {% if analysis and analysis.worst_categories %}
+                    <ul class="category-list">
+                        {% for category in analysis.worst_categories[:5] %}
+                            <li class="category-item">
+                                <span class="category-name">{{ category.name }}</span>
+                                <span class="category-value">{{ category.mean|round(2) }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>Não há dados disponíveis.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if analysis and analysis.comments %}
+            <div class="page-break"></div>
+            
+            <div class="comments-section">
+                <h2 class="section-title">Comentários Destacados</h2>
+                {% for comment in analysis.comments[:10] %}
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span class="comment-id">Entrevistado #{{ comment.id }}</span>
+                            <span class="comment-date">{{ comment.date }}</span>
+                            <span class="comment-rating">Avaliação: {{ comment.rating }}</span>
+                        </div>
+                        <div class="comment-text">{{ comment.text }}</div>
+                        <div>
+                            <span class="comment-category">{{ comment.category }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div class="footer">
+            <p>© 2023 Análise de Software - Todos os direitos reservados</p>
+            <p>Este é um relatório gerado automaticamente. Para mais informações, acesse o dashboard.</p>
+        </div>
+    </div>
+</body>
+</html> 

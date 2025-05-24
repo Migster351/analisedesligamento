@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerenciar Arquivos de Dados{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">Gerenciar Arquivos de Dados</h1>
+                    <p class="text-muted">Upload, visualização e exclusão de arquivos CSV de entrevistas de desligamento</p>
+                </div>
+                <div>
+                    <a href="/" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm me-2">
+                        <i class="bi bi-arrow-left"></i> Dashboard
+                    </a>
+                    <button id="btn-refresh-data" class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm" onclick="refreshData()">
+                        <i class="bi bi-arrow-clockwise"></i> Atualizar Análises
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Upload de Arquivos -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card bg-dark text-white">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-cloud-upload"></i> Upload de Arquivos</span>
+                </div>
+                <div class="card-body">
+                    <form id="upload-form" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="csv_file" class="form-label">Selecione o arquivo CSV</label>
+                                    <input class="form-control bg-dark text-light border-dark" type="file" id="csv_file" name="csv_file" accept=".csv">
+                                    <div class="form-text text-muted">
+                                        O arquivo deve conter colunas para data_desligamento, lideranca, remuneracao, comunicacao, beneficios, cultura, relacionamento.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100" id="btn-upload">
+                                    <i class="bi bi-upload"></i> Fazer Upload
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="mt-3" id="upload-result" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lista de Arquivos -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card bg-dark text-white">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-file-earmark-text"></i> Arquivos Disponíveis</span>
+                    <span class="badge bg-primary">{{ csv_files|length }} arquivos</span>
+                </div>
+                <div class="card-body">
+                    {% if csv_files %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped" id="files-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome do Arquivo</th>
+                                    <th>Registros</th>
+                                    <th>Colunas</th>
+                                    <th>Tamanho (KB)</th>
+                                    <th>Data</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for file in csv_files %}
+                                <tr class="file-row" data-filename="{{ file.name }}">
+                                    <td>{{ file.name }}</td>
+                                    <td>{{ file.records }}</td>
+                                    <td>{{ file.columns }}</td>
+                                    <td>{{ '%.2f'|format(file.size) }}</td>
+                                    <td>{{ file.date }}</td>
+                                    <td>
+                                        {% if file.valid %}
+                                        <span class="badge bg-success">Válido</span>
+                                        {% else %}
+                                        <span class="badge bg-danger" title="{{ file.error }}">Inválido</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger delete-file" data-filename="{{ file.name }}" title="Excluir arquivo">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-file-earmark-x text-muted" style="font-size: 3rem;"></i>
+                        <p class="mt-3 text-muted">Nenhum arquivo CSV encontrado na pasta database</p>
+                        <p class="text-muted">Faça upload de arquivos usando o formulário acima</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Confirmação para Exclusão -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirmar Exclusão</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja excluir o arquivo <strong id="filename-to-delete"></strong>?</p>
+                    <p class="text-danger">Esta ação não pode ser desfeita.</p>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete">Excluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Aguardar o carregamento completo do documento
+    document.addEventListener('DOMContentLoaded', function() {
+        // Função para atualizar a tabela de arquivos
+        function updateFileList() {
+            window.location.href = '/manage_files';
+        }
+        
+        // Função para atualizar as análises
+        function refreshData() {
+            const refreshBtn = document.getElementById('btn-refresh-data');
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Atualizando...';
+            
+            fetch('/refresh_data')
+                .then(response => {
+                    if (response.ok) {
+                        showAlert('success', 'Dados atualizados com sucesso!');
+                    } else {
+                        showAlert('danger', 'Erro ao atualizar dados');
+                    }
+                })
+                .catch(error => {
+                    showAlert('danger', 'Erro ao atualizar dados: ' + error.message);
+                })
+                .finally(() => {
+                    refreshBtn.disabled = false;
+                    refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Atualizar Análises';
+                });
+        }
+        
+        // Função para mostrar alertas
+        function showAlert(type, message) {
+            const alertDiv = document.getElementById('upload-result');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = message;
+            alertDiv.style.display = 'block';
+            
+            // Esconde o alerta após 5 segundos
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Processar o formulário de upload
+        document.getElementById('upload-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const uploadBtn = document.getElementById('btn-upload');
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Enviando...';
+            
+            fetch('/manage_files', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showAlert('success', data.message);
+                    setTimeout(updateFileList, 1000);
+                    this.reset();
+                } else {
+                    showAlert('danger', data.message);
+                }
+            })
+            .catch(error => {
+                showAlert('danger', 'Erro ao enviar arquivo: ' + error.message);
+            })
+            .finally(() => {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="bi bi-upload"></i> Fazer Upload';
+            });
+        });
+        
+        // Referência ao modal
+        const modalElement = document.getElementById('deleteModal');
+        let deleteModal;
+        
+        // Inicializando o modal de Bootstrap
+        if (typeof bootstrap !== 'undefined') {
+            deleteModal = new bootstrap.Modal(modalElement);
+        } else {
+            console.error('Bootstrap não está disponível');
+        }
+        
+        // Variável para armazenar o nome do arquivo a ser excluído
+        let fileToDelete = '';
+        
+        // Adiciona listeners em todos os botões de exclusão
+        document.querySelectorAll('.delete-file').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                fileToDelete = this.getAttribute('data-filename');
+                
+                // Atualiza o texto do modal
+                const filenameElement = document.getElementById('filename-to-delete');
+                if (filenameElement) {
+                    filenameElement.textContent = fileToDelete;
+                }
+                
+                // Mostra o modal
+                if (deleteModal) {
+                    deleteModal.show();
+                } else {
+                    // Fallback se o modal não puder ser inicializado
+                    if (confirm(`Tem certeza que deseja excluir o arquivo ${fileToDelete}?`)) {
+                        deleteFile(fileToDelete);
+                    }
+                }
+            });
+        });
+        
+        // Função para excluir o arquivo
+        function deleteFile(filename) {
+            if (!filename) return;
+            
+            fetch('/manage_files', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ filename: filename })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (deleteModal) {
+                    deleteModal.hide();
+                }
+                
+                if (data.status === 'success') {
+                    showAlert('success', data.message);
+                    const fileRow = document.querySelector(`.file-row[data-filename="${filename}"]`);
+                    if (fileRow) {
+                        fileRow.remove();
+                    }
+                    
+                    // Atualiza o contador de arquivos
+                    const countBadge = document.querySelector('.card-header .badge');
+                    if (countBadge) {
+                        const currentCount = parseInt(countBadge.textContent);
+                        countBadge.textContent = (currentCount - 1) + ' arquivos';
+                        
+                        // Se não houver mais arquivos, recarrega a página
+                        if (currentCount <= 1) {
+                            setTimeout(updateFileList, 1000);
+                        }
+                    }
+                } else {
+                    showAlert('danger', data.message);
+                }
+            })
+            .catch(error => {
+                if (deleteModal) {
+                    deleteModal.hide();
+                }
+                showAlert('danger', 'Erro ao excluir arquivo: ' + error.message);
+            });
+        }
+        
+        // Adiciona listener ao botão de confirmação de exclusão
+        const confirmDeleteBtn = document.getElementById('confirm-delete');
+        if (confirmDeleteBtn) {
+            confirmDeleteBtn.addEventListener('click', function() {
+                deleteFile(fileToDelete);
+            });
+        }
+        
+        // Define a função refreshData como global
+        window.refreshData = refreshData;
+    });
+</script>
+{% endblock %}
+{% endblock %} 
