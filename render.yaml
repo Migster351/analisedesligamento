@@ -3,11 +3,9 @@ services:
     name: analise-software
     env: python
     buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: gunicorn run:app --bind 0.0.0.0:10000
+    startCommand: gunicorn run:app --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.11
       - key: FLASK_APP
-        value: config.ProductionConfig
-      - key: PORT
-        value: 10000 
+        value: config.ProductionConfig 
